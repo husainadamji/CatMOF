@@ -1,0 +1,89 @@
+# CatalMOF pipeline configuration
+# Use: python cli.py run -c config.yaml   or: catalmof run -c config.yaml (when installed)
+#
+# Flow: 1) Screen by metal (user set or default)  2) Featurization (always)
+#       3) Activation stability (optional)  4) Thermal stability (optional)
+#       Confidence checks only on the stability criteria you run, at your discretion.
+#       5) get_stable_mofs (always: filter + unique mc-RAC; or only unique mc-RAC if both stability bypassed)
+#       6) Text mining (optional)  7) SBU analysis  8) SBU capping
+
+# -----------------------------------------------------------------------------
+# Paths (optional). Relative to workdir unless overridden. CLI sets CATALMOF_CONFIG.
+# -----------------------------------------------------------------------------
+paths:
+  base_dir: data
+  # core_cifs_dir: data/CoRE_ASR_2024  # Download MOF CIF files and set path here (or use default)
+  # core_rfactors_csv: path to your R-factor CSV. Required if run_rfactor_check is true. Columns: 'name' (MOF refcode), 'R-factor' (numeric). Obtain via CCDC/CSD API (CSD license required).
+  # featurization_dir: data/featurization
+  # mof_stability_dir: data/mof_stability
+  # text_mining_dir: data/text_mining
+  # text_mining_html_dir: /path/to/html/corpus  # path/prefix/rest.html (e.g. path/10.1021/acscatal.2c02096.html); for paper_pickler
+  # text_mining_pickle_dir: data/text_mining/pickles  # Output of paper_pickler; required for full paper analysis
+  # sbu_clusters_dir: data/sbu_clusters
+  # stability_models_dir: stability_ml_models
+  # zeo_network: submodules/zeo++-0.3/network
+  # manuscript_data_csv: path to your CSV with columns name (MOF refcode), doi, title. Use catalmof.text_mining_tools.title_fetcher to get titles from a DOI list.
+
+# -----------------------------------------------------------------------------
+# 1. Metals (screen by metal). Default used if not set.
+# -----------------------------------------------------------------------------
+metals:
+  - Mn
+  - Fe
+  - Co
+  - Ni
+  - Cu
+  - Ru
+
+# -----------------------------------------------------------------------------
+# 3. Stability: activation then thermal. User can run both, one, or neither.
+# -----------------------------------------------------------------------------
+bypass_activation_stability: false
+bypass_thermal_stability: false
+
+# Confidence checks only on the stability criteria you run. Can be disabled entirely.
+run_confidence_checks: true
+
+# LSE cutoff (activation); LSD cutoff (thermal). Used only when that stability runs and run_confidence_checks is true.
+lse_cutoff: 0.19
+lsd_cutoff: 0.21
+
+# Thermal stability threshold (K). Only when thermal stability runs.
+thermal_stability_threshold: 300
+
+# When deduping by mc-RAC without thermal T (activation-only or both bypassed), random seed for reproducibility.
+mcenv_dedup_random_seed: 42
+
+# -----------------------------------------------------------------------------
+# 5. Text mining
+# -----------------------------------------------------------------------------
+bypass_text_mining: false
+
+# Title-only: at least one keyword in title = catalysis paper; full paper analysis bypassed.
+# Default is True (title-only). Set to False AND provide paths.text_mining_pickle_dir for full paper analysis.
+text_mining_title_only: true
+
+# Keywords: merge (default + user) or override (only user list).
+text_mining_keywords_mode: merge
+text_mining_keywords: []
+# text_mining_keywords: ["electrocatalysis", "photocatalysis"]
+
+# Full paper: sentence-position cutoff (0–1) to exclude early sentences.
+text_mining_cutoff: 0.25
+
+# Full paper: max unique keyword hits for "no catalysis" (e.g. 3 → retain 0, 1, 2 hits).
+text_mining_max_catalysis_hits: 3
+
+# Optional: when full paper analysis is requested and paths.text_mining_html_dir is set, the CLI runs the paper pickler first (HTMLs → pickles), then text mining.
+# text_mining_pickler_skip_existing: true  # Skip DOIs that already have a pickle (default true; set false to force re-pickle all)
+
+# -----------------------------------------------------------------------------
+# 7. SBU analysis: R-factor check (optional)
+# -----------------------------------------------------------------------------
+# R-factor check filters SBUs by crystal quality. You must provide the R-factor CSV; CatalMOF does not ship it.
+# Obtain R-factor data separately (e.g. via the CCDC/CSD API; CSD license required).
+# Default is False. If True, set paths.core_rfactors_csv to your CSV with columns: 'name' (MOF refcode), 'R-factor' (numeric).
+run_rfactor_check: false
+
+# R-factor cutoff: retain MOFs with R-factor below this value. Only used when run_rfactor_check is true. Default 10.
+rfactor_cutoff: 10

@@ -1,0 +1,9 @@
+These are locally changed files from the article_downloader from the Olivetti group. 
+They are adjusted for python3, and tweaked for more limited queries (relevant for 
+Kulik group's purposes on limiting journals).Replace these where ever your 
+articledownloader install is. If you do not replace these files, you should get the
+following issues:
+
+"cannot find scrapers.py"
+and 
+"HTML import" should fail.
