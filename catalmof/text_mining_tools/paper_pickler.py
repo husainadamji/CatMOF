@@ -4,10 +4,10 @@ Build a pickle corpus from a directory of manuscript HTML/XML files.
 Expected HTML directory layout: path/prefix/rest.html (or .xml)
   e.g. path/10.1021/acscatal.2c02096.html for DOI 10.1021/acscatal.2c02096
 
-Pickle output: pickle_dir/prefix/rest.pkl
-  e.g. pickle_dir/10.1021/acscatal.2c02096.pkl
+Pickle output: CatalMOF writes to text_mining_dir/pickles (paths.text_mining_pickle_dir).
+  e.g. .../pickles/10.1021/acscatal.2c02096.pkl
 
-Reads paths from config (CATALMOF_CONFIG): paths.text_mining_html_dir, paths.text_mining_pickle_dir.
+Reads from config (CATALMOF_CONFIG): paths.text_mining_html_dir. Pickle dir is set by CatalMOF.
 """
 
 import os
@@ -69,10 +69,7 @@ def main():
         print("Set paths.text_mining_html_dir in config to your HTML/XML corpus directory.", file=sys.stderr)
         sys.exit(1)
 
-    pickle_dir = p.text_mining_pickle_dir
-    if not pickle_dir:
-        pickle_dir = os.path.join(p.text_mining_dir, "pickles")
-    pickle_dir = os.path.normpath(pickle_dir).rstrip(os.sep)
+    pickle_dir = os.path.normpath(p.text_mining_pickle_dir).rstrip(os.sep)
     os.makedirs(pickle_dir, exist_ok=True)
 
     skip_existing = config.get("text_mining_pickler_skip_existing", True)
