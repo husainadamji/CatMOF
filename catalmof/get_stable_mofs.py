@@ -89,19 +89,21 @@ def _get_uniq_mcenv_representatives(stable_mofs, mc_racs_list, order_indices, to
     return uniq_stable_mofs
 
 
+def _get_mc_racs_list(stable_mofs, solvent_data_file):
+    """Load solvent CSV and return list of mc-RAC vectors (one per MOF in stable_mofs)."""
+    solvent_df = pd.read_csv(solvent_data_file)
+    mc_rac_names = [c for c in solvent_df.columns if 'mc' in c]
+    return [
+        solvent_df.loc[solvent_df['name'] == mof, mc_rac_names].values.flatten().tolist()
+        for mof in stable_mofs
+    ]
+
+
 def get_stable_mofs_w_unique_mcenv(stable_df, solvent_data_file, tol=1e-7):
     """Among MOFs with identical mc-RACs, keep the one with highest predicted T (decomposition temp)."""
     stable_mofs = stable_df["name"].values
     predicted_T = stable_df["thermal_T"].values
-    solvent_df = pd.read_csv(solvent_data_file)
-    col_names = solvent_df.columns
-    mc_rac_names = [col_name for col_name in col_names if 'mc' in col_name]
-
-    mc_racs_list = []
-    for mof in stable_mofs:
-        mc_racs = solvent_df.loc[solvent_df['name'] == mof, mc_rac_names].values.flatten().tolist()
-        mc_racs_list.append(mc_racs)
-
+    mc_racs_list = _get_mc_racs_list(stable_mofs, solvent_data_file)
     # Order by T descending so we keep highest-T representative per mc-RAC set
     order = np.argsort(-np.asarray(predicted_T, dtype=float))
     uniq_stable_mofs = _get_uniq_mcenv_representatives(stable_mofs, mc_racs_list, order, tol=tol)
@@ -112,15 +114,7 @@ def get_stable_mofs_w_unique_mcenv_random(stable_df, solvent_data_file, tol=1e-7
     """Among MOFs with identical mc-RACs, keep one representative chosen at random (no T available).
     Uses random_state for reproducibility when provided (e.g. integer seed)."""
     stable_mofs = stable_df["name"].values
-    solvent_df = pd.read_csv(solvent_data_file)
-    col_names = solvent_df.columns
-    mc_rac_names = [col_name for col_name in col_names if 'mc' in col_name]
-
-    mc_racs_list = []
-    for mof in stable_mofs:
-        mc_racs = solvent_df.loc[solvent_df['name'] == mof, mc_rac_names].values.flatten().tolist()
-        mc_racs_list.append(mc_racs)
-
+    mc_racs_list = _get_mc_racs_list(stable_mofs, solvent_data_file)
     rng = np.random.default_rng(random_state)
     order = np.arange(len(stable_mofs))
     rng.shuffle(order)

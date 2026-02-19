@@ -164,9 +164,10 @@ def analyze_sentence_set(sentence_set, has_intro_section, catalysis_kws, cutoff)
     return catalysis_bool_list, counter
 
 
-def _get_keywords():
+def _get_keywords(config=None):
     """Build text-mining keyword list from config: merge or override with default."""
-    config = get_config()
+    if config is None:
+        config = get_config()
     user_keywords = config.get("text_mining_keywords", [])
     if not isinstance(user_keywords, list):
         user_keywords = []
@@ -187,7 +188,7 @@ def _get_keywords():
 def main():
     p = get_paths()
     config = get_config()
-    keywords = _get_keywords()
+    keywords = _get_keywords(config)
 
     if not os.path.isfile(p.manuscript_data_csv):
         raise FileNotFoundError(
@@ -196,14 +197,8 @@ def main():
             "You can create it using: python -m catalmof.text_mining_tools.title_fetcher --doi-csv <doi.csv> --output-csv <out.csv>"
         )
 
-    # Default to title-only (True) unless user explicitly sets False AND provides pickle directory
-    title_only_config = config.get("text_mining_title_only", True)
-    pickle_dir = p.text_mining_pickle_dir
-    # If no pickle directory provided, force title-only mode
-    if pickle_dir is None:
-        title_only = True
-    else:
-        title_only = title_only_config
+    title_only = config.get("text_mining_title_only", True)
+    pickle_dir = p.text_mining_pickle_dir  # CatalMOF-managed (text_mining_dir/pickles)
 
     uniq_stable_mof_manuscript_df = scraper(
         p.stable_mofs_unique_mc_csv,
@@ -224,12 +219,6 @@ def main():
         return
 
     # Full text mining: intro, full paper sentences, position, sentence analysis
-    if pickle_dir is None:
-        raise ValueError(
-            "Full paper text mining requires text_mining_pickle_dir in config paths. "
-            "Set paths.text_mining_pickle_dir to your pickle file directory, or use title-only mode."
-        )
-
     cutoff = config.get("text_mining_cutoff", 0.25)
     max_catalysis_hits = config.get("text_mining_max_catalysis_hits", 3)
 

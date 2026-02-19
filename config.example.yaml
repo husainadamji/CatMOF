@@ -17,8 +17,7 @@ paths:
   # featurization_dir: data/featurization
   # mof_stability_dir: data/mof_stability
   # text_mining_dir: data/text_mining
-  # text_mining_html_dir: /path/to/html/corpus  # path/prefix/rest.html (e.g. path/10.1021/acscatal.2c02096.html); for paper_pickler
-  # text_mining_pickle_dir: data/text_mining/pickles  # Output of paper_pickler; required for full paper analysis
+  # text_mining_html_dir: /path/to/html/corpus  # path/prefix/rest.html (e.g. path/10.1021/acscatal.2c02096.html); for paper_pickler. Pickles are written under text_mining by CatalMOF.
   # sbu_clusters_dir: data/sbu_clusters
   # stability_models_dir: stability_ml_models
   # zeo_network: submodules/zeo++-0.3/network
@@ -60,7 +59,7 @@ mcenv_dedup_random_seed: 42
 bypass_text_mining: false
 
 # Title-only: at least one keyword in title = catalysis paper; full paper analysis bypassed.
-# Default is True (title-only). Set to False AND provide paths.text_mining_pickle_dir for full paper analysis.
+# Default is True (title-only). Set to False for full paper analysis (provide paths.text_mining_html_dir when using the pickler).
 text_mining_title_only: true
 
 # Keywords: merge (default + user) or override (only user list).
@@ -74,7 +73,7 @@ text_mining_cutoff: 0.25
 # Full paper: max unique keyword hits for "no catalysis" (e.g. 3 → retain 0, 1, 2 hits).
 text_mining_max_catalysis_hits: 3
 
-# Optional: when full paper analysis is requested and paths.text_mining_html_dir is set, the CLI runs the paper pickler first (HTMLs → pickles), then text mining.
+# When full paper analysis is requested and paths.text_mining_html_dir is set, the CLI runs the paper pickler first (HTMLs → pickles under text_mining), then text mining.
 # text_mining_pickler_skip_existing: true  # Skip DOIs that already have a pickle (default true; set false to force re-pickle all)
 
 # -----------------------------------------------------------------------------

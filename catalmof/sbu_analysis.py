@@ -10,7 +10,7 @@ from molSimplify.Classes.globalvars import globalvars
 import molSimplify.Informatics.MOF.PBC_functions as pbc_funs
 from itertools import combinations
 from data.atomic_data import metal_atom_radii
-from catalmof.paths import get_paths, get_sbu_input_csv, get_config
+from catalmof.paths import get_paths, get_sbu_input_csv, get_config, DEFAULT_METALS
 
 def populate_cifs(base_dir, filtered_cifs_csv_path, core_cifs_dir):
 
@@ -391,7 +391,7 @@ def main():
     if env_metals:
         metals_of_interest = [m.strip() for m in env_metals.split(",") if m.strip()]
     else:
-        metals_of_interest = ['Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Ru']
+        metals_of_interest = DEFAULT_METALS
     base_dir = p.sbu_clusters_dir
     os.makedirs(base_dir, exist_ok=True)
     path_to_primitive = accessory_funs.build_dir_hierarchy(base_dir)

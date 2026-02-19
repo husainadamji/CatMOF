@@ -28,6 +28,7 @@ FILES = SimpleNamespace(
 )
 
 DEFAULT_BASE_DIR = "data"
+DEFAULT_METALS = ["Mn", "Fe", "Co", "Ni", "Cu", "Ru"]
 DEFAULT_CORE_CIFS_DIR = "data/CoRE_ASR_2024"
 DEFAULT_CORE_RFACTORS = "data/CoRE_ASR_2024_Rfactors.csv"
 DEFAULT_STABILITY_MODELS = "stability_ml_models"
@@ -75,7 +76,7 @@ def get_paths():
     zeo_network = cfg.get("zeo_network", DEFAULT_ZEO_NETWORK)
     manuscript_data_csv = cfg.get("manuscript_data_csv") or f"{text_mining_dir}/{FILES.manuscript_data}"
     text_mining_html_dir = cfg.get("text_mining_html_dir")  # User's HTML/XML corpus (for paper_pickler)
-    text_mining_pickle_dir = cfg.get("text_mining_pickle_dir")  # None if not provided (forces title-only)
+    text_mining_pickle_dir = f"{text_mining_dir}/pickles"  # CatalMOF-managed; pickler and text mining write/read here
 
     # Key file paths
     metal_filtered_cifs_csv = f"{base}/{FILES.metal_filtered_cifs}"
@@ -114,7 +115,7 @@ def get_paths():
         core_rfactors_csv=core_rfactors_csv,
         # For featurization subdirs
         featurization_zeo_data=f"{featurization_dir}/zeo_data",
-        # Text mining: HTML corpus (for pickler) and pickle directory (None if not provided)
+        # Text mining: HTML corpus (user); pickle dir is always text_mining_dir/pickles
         text_mining_html_dir=text_mining_html_dir,
         text_mining_pickle_dir=text_mining_pickle_dir,
     )

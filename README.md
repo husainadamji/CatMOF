@@ -20,7 +20,7 @@ CatalMOF does not ship a manuscript CSV. You provide it and point config at it v
 
   If your DOI CSV includes a **name** column (e.g. from a CSD export), the output is ready for `manuscript_data_csv`.
 
-- **Full-paper**: Provide the same manuscript CSV and a directory of article HTML/XML files (`paths.text_mining_html_dir`). Set `paths.text_mining_pickle_dir` for pickler output. CatalMOF runs the internal pickler on your HTMLs (pickles are not assumed pre-provided; existing pickles are skipped by default). To download HTML/XML by DOI first:
+- **Full-paper**: Provide the same manuscript CSV and a directory of article HTML/XML files (`paths.text_mining_html_dir`). CatalMOF runs the internal pickler on your HTMLs and writes pickles under the text_mining directory (existing pickles are skipped by default). To download HTML/XML by DOI first:
 
   ```bash
   python -m catalmof.text_mining_tools.downloader --doi-csv dois.csv --output-dir /path/to/html/corpus

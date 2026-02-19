@@ -8,7 +8,7 @@ from pathlib import Path
 import click
 import yaml
 
-from catalmof.paths import get_paths
+from catalmof.paths import get_paths, DEFAULT_METALS
 
 # Pipeline steps in order (module path, description)
 PIPELINE_STEPS = [
@@ -60,7 +60,7 @@ def read_config(config_path):
         data = yaml.safe_load(f)
     if data is None:
         data = {}
-    data.setdefault("metals", ["Mn", "Fe", "Co", "Ni", "Cu", "Ru"])
+    data.setdefault("metals", DEFAULT_METALS)
     data.setdefault("bypass_activation_stability", False)
     data.setdefault("bypass_thermal_stability", False)
     data.setdefault("run_confidence_checks", True)
@@ -113,7 +113,7 @@ def run(config, workdir):
     Featurization always runs (needed for mc-RAC dedup). When both stability steps are bypassed,
     get_stable_mofs still runs and only performs unique mc-RAC deduplication (random pick per set).
 
-    Config (see config.example.yaml): paths (including text_mining_pickle_dir for full paper analysis,
+    Config (see config.example.yaml): paths (e.g. text_mining_html_dir for full paper analysis,
     core_rfactors_csv for R-factor check), metals, bypass_activation_stability, bypass_thermal_stability,
     run_confidence_checks, lse_cutoff, lsd_cutoff, thermal_stability_threshold, bypass_text_mining,
     text_mining_title_only, run_rfactor_check, etc.

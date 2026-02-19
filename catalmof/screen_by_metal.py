@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from molSimplify.Scripts.cellbuilder_tools import import_from_cif
 
-from catalmof.paths import get_paths
+from catalmof.paths import get_paths, DEFAULT_METALS
 
 def get_mof_metals(mof):
     metals = list(set(metal.symbol() for metal in mof.getAtomwithinds(mof.findMetal(transition_metals_only=False))))
@@ -50,7 +50,7 @@ def main():
     if env_metals:
         desired_metals = [m.strip() for m in env_metals.split(",") if m.strip()]
     else:
-        desired_metals = ["Mn", "Fe", "Co", "Ni", "Cu", "Ru"]
+        desired_metals = DEFAULT_METALS
     _, _, _ = get_specific_metal_mofs(desired_metals, cifs, mof_paths, mof_metals, p.metal_filtered_cifs_csv)
 
 if __name__ == "__main__":
