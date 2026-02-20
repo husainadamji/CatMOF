@@ -19,10 +19,27 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 requires-python = ">=3.8"
-# Declare any run-time dependencies that should be installed with the package.
-#dependencies = [
-#    "importlib-resources;python_version<'3.10'",
-#]
+# Run-time dependencies; aligned with devtools/conda-envs/catalmof_env.yaml (>= minimum; == for pymatgen, molSimplify, beautifulsoup4, articledownloader).
+dependencies = [
+    "numpy>=1.22.3",
+    "pandas>=2.0.3",
+    "scipy>=1.8.1",
+    "networkx>=2.8.8",
+    "pyyaml>=6.0",
+    "click>=8.1.7",
+    "pymatgen==2020.10.20",
+    "scikit-learn>=0.24.2",
+    "tensorflow>=2.4.1",
+    "keras>=2.4.1",
+    "beautifulsoup4==4.9.3",
+    "nltk>=3.9.1",
+    "regex>=2024.9.11",
+    "requests>=2.32.3",
+    "molSimplify==1.7.5",
+    "pybliometrics>=4.1",
+    "autologging>=1.3.2",
+    "articledownloader==9.1.1",
+]
 
 # Update the urls once the hosting is set up.
 #[project.urls]
@@ -34,10 +51,9 @@ test = [
   "pytest>=6.1.2",
 ]
 text_mining_titles = [
-  "selenium",
-  "beautifulsoup4",
-  "webdriver-manager",
-]
+  "selenium>=4.22.0",
+  "webdriver-manager>=4.0.1",
+]  # Conda env includes these; use this extra for pip-only installs that need the title fetcher.
 
 # CLI entry points
 [project.scripts]

@@ -7,6 +7,20 @@ CatalMOF
 
 We are generating DFT-ready SBU clusters for stable MOFs with catalytic potential.
 
+### Installation
+
+From a fresh clone, use the pinned conda environment and install the package in editable mode:
+
+```bash
+git clone <repo-url>
+cd CatalMOF
+conda env create -f devtools/conda-envs/catalmof_env.yaml
+conda activate catalmof
+pip install -e .
+```
+
+Then copy `config.example.yaml` to `config.yaml`, set paths (e.g. `zeo_network` if using geometric featurization), and run with `catalmof run -c config.yaml`.
+
 ### Text mining
 
 CatalMOF does not ship a manuscript CSV. You provide it and point config at it via `paths.manuscript_data_csv`. The CSV must have columns **name** (MOF refcode, matching stable MOF names), **doi**, and **title**.

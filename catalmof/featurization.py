@@ -184,6 +184,12 @@ def main():
     base_dir = p.featurization_dir
     os.makedirs(base_dir, exist_ok=True)
     path_to_zeo = p.zeo_network
+    if not path_to_zeo or not os.path.isfile(path_to_zeo):
+        raise FileNotFoundError(
+            f"Zeo++ binary not found at path: {path_to_zeo!r}. "
+            "Download Zeo++ (version 0.3) from https://www.zeoplusplus.org/download.html, build the 'network' binary, "
+            "then set paths.zeo_network in your config to the full path of the network executable."
+        )
     path_to_zeo_txt_files = p.featurization_zeo_data
     os.makedirs(path_to_zeo_txt_files, exist_ok=True)
     path_to_primitive = build_dir_hierarchy(base_dir)

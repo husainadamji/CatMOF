@@ -20,7 +20,7 @@ paths:
   # text_mining_html_dir: /path/to/html/corpus  # path/prefix/rest.html (e.g. path/10.1021/acscatal.2c02096.html); for paper_pickler. Pickles are written under text_mining by CatalMOF.
   # sbu_clusters_dir: data/sbu_clusters
   # stability_models_dir: stability_ml_models
-  # zeo_network: submodules/zeo++-0.3/network
+  # zeo_network: /path/to/zeo++-0.3/network   # Path to Zeo++ binary. Required for geometric featurization. Download from https://www.zeoplusplus.org/download.html (use version 0.3).
   # manuscript_data_csv: path to your CSV with columns name (MOF refcode), doi, title. Use catalmof.text_mining_tools.title_fetcher to get titles from a DOI list.
 
 # -----------------------------------------------------------------------------
