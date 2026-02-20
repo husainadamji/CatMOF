@@ -73,7 +73,7 @@ def get_paths():
     core_cifs_dir = cfg.get("core_cifs_dir", DEFAULT_CORE_CIFS_DIR)
     core_rfactors_csv = cfg.get("core_rfactors_csv", DEFAULT_CORE_RFACTORS)
     stability_models_dir = cfg.get("stability_models_dir", DEFAULT_STABILITY_MODELS)
-    zeo_network = cfg.get("zeo_network", DEFAULT_ZEO_NETWORK)
+    zeo_network = cfg.get("zeo_network", DEFAULT_ZEO_NETWORK)  # User sets in config after downloading Zeo++
     manuscript_data_csv = cfg.get("manuscript_data_csv") or f"{text_mining_dir}/{FILES.manuscript_data}"
     text_mining_html_dir = cfg.get("text_mining_html_dir")  # User's HTML/XML corpus (for paper_pickler)
     text_mining_pickle_dir = f"{text_mining_dir}/pickles"  # CatalMOF-managed; pickler and text mining write/read here
