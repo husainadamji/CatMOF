@@ -17,12 +17,12 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-import catalmof
+import catmof
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'CatalMOF'
+project = 'CatMOF'
 copyright = ("2024, Husain Adamji. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.1")
 author = 'Husain Adamji'
@@ -120,7 +120,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'catalmofdoc'
+htmlhelp_basename = 'catmofdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -147,8 +147,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'catalmof.tex', 'CatalMOF Documentation',
-     'catalmof', 'manual'),
+    (master_doc, 'catmof.tex', 'CatMOF Documentation',
+     'catmof', 'manual'),
 ]
 
 
@@ -157,7 +157,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'catalmof', 'CatalMOF Documentation',
+    (master_doc, 'catmof', 'CatMOF Documentation',
      [author], 1)
 ]
 
@@ -168,8 +168,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'catalmof', 'CatalMOF Documentation',
-     author, 'catalmof', 'We are generating DFT-ready SBU clusters for stable MOFs with catalytic potential.',
+    (master_doc, 'catmof', 'CatMOF Documentation',
+     author, 'catmof', 'We are generating DFT-ready SBU clusters for stable MOFs with catalytic potential.',
      'Miscellaneous'),
 ]
 

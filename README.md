@@ -1,8 +1,8 @@
-CatalMOF
+CatMOF
 ==============================
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/catalmof/workflows/CI/badge.svg)](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/catalmof/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/CatalMOF/branch/main/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/CatalMOF/branch/main)
+[![GitHub Actions Build Status](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/catmof/workflows/CI/badge.svg)](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/catmof/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/CatMOF/branch/main/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/CatMOF/branch/main)
 
 
 We are generating DFT-ready SBU clusters for stable MOFs with catalytic potential.
@@ -13,42 +13,42 @@ From a fresh clone, use the pinned conda environment and install the package in 
 
 ```bash
 git clone <repo-url>
-cd CatalMOF
-conda env create -f devtools/conda-envs/catalmof_env.yaml
-conda activate catalmof
+cd CatMOF
+conda env create -f devtools/conda-envs/catmof_env.yaml
+conda activate catmof
 pip install -e .
 ```
 
-Then copy `config.example.yaml` to `config.yaml`, set paths (e.g. `zeo_network` if using geometric featurization), and run with `catalmof run -c config.yaml`.
+Then copy `config.example.yaml` to `config.yaml`, set paths (e.g. `zeo_network` if using geometric featurization), and run with `catmof run -c config.yaml`.
 
 ### Text mining
 
-CatalMOF does not ship a manuscript CSV. You provide it and point config at it via `paths.manuscript_data_csv`. The CSV must have columns **name** (MOF refcode, matching stable MOF names), **doi**, and **title**.
+CatMOF does not ship a manuscript CSV. You provide it and point config at it via `paths.manuscript_data_csv`. The CSV must have columns **name** (MOF refcode, matching stable MOF names), **doi**, and **title**.
 
 - **Title-only** (`text_mining_title_only: true`): Provide the manuscript CSV with names, DOIs, and titles. Use the title fetcher to fill titles from a DOI list (same CSV format as the downloader):
 
   ```bash
-  pip install catalmof[text_mining_titles]
-  python -m catalmof.text_mining_tools.title_fetcher --doi-csv dois.csv --output-csv manuscript_data_w_titles.csv
+  pip install catmof[text_mining_titles]
+  python -m catmof.text_mining_tools.title_fetcher --doi-csv dois.csv --output-csv manuscript_data_w_titles.csv
   ```
 
   If your DOI CSV includes a **name** column (e.g. from a CSD export), the output is ready for `manuscript_data_csv`.
 
-- **Full-paper**: Provide the same manuscript CSV and a directory of article HTML/XML files (`paths.text_mining_html_dir`). CatalMOF runs the internal pickler on your HTMLs and writes pickles under the text_mining directory (existing pickles are skipped by default). To download HTML/XML by DOI first:
+- **Full-paper**: Provide the same manuscript CSV and a directory of article HTML/XML files (`paths.text_mining_html_dir`). CatMOF runs the internal pickler on your HTMLs and writes pickles under the text_mining directory (existing pickles are skipped by default). To download HTML/XML by DOI first:
 
   ```bash
-  python -m catalmof.text_mining_tools.downloader --doi-csv dois.csv --output-dir /path/to/html/corpus
+  python -m catmof.text_mining_tools.downloader --doi-csv dois.csv --output-dir /path/to/html/corpus
   ```
 
-  Downloader CSV: `doi` column required; optional `mode` column. For Elsevier DOIs you need an API key (obtain separately; use `--elsevier-key` or `CATALMOF_ELSEVIER_API_KEY`). ACS is skipped (violation of ACS policy). Wiley is supported.
+  Downloader CSV: `doi` column required; optional `mode` column. For Elsevier DOIs you need an API key (obtain separately; use `--elsevier-key` or `CATMOF_ELSEVIER_API_KEY`). ACS is skipped (violation of ACS policy). Wiley is supported.
 
 ### R-factor check (SBU analysis)
 
-If you set `run_rfactor_check: true`, you must provide a CSV with MOF refcodes and R-factors (`paths.core_rfactors_csv`). CatalMOF does not ship this file. You can obtain R-factor data separately using the **CCDC/CSD API** (a CSD license is required). The CSV must have columns: **name** (MOF refcode), **R-factor** (numeric).
+If you set `run_rfactor_check: true`, you must provide a CSV with MOF refcodes and R-factors (`paths.core_rfactors_csv`). CatMOF does not ship this file. You can obtain R-factor data separately using the **CCDC/CSD API** (a CSD license is required). The CSV must have columns: **name** (MOF refcode), **R-factor** (numeric).
 
 ### Zeo++ (geometric analysis)
 
-CatalMOF does not ship Zeo++. For geometric featurization (pore diameter, surface area, pore volume, etc.) you must download and build Zeo++ yourself, then set `zeo_network` in your config to the path of the `network` binary. Use **version 0.3** to match the code paths used in CatalMOF.
+CatMOF does not ship Zeo++. For geometric featurization (pore diameter, surface area, pore volume, etc.) you must download and build Zeo++ yourself, then set `zeo_network` in your config to the path of the `network` binary. Use **version 0.3** to match the code paths used in CatMOF.
 
 - **Download:** [Zeo++ — Download](https://www.zeoplusplus.org/download.html)
 

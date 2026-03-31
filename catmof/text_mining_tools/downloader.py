@@ -4,13 +4,13 @@ Standalone helper to download article HTML/XML files by DOI.
 Uses ArticleDownloader to fetch files. Writes to output_dir in the layout
 expected by the paper pickler: output_dir/prefix/rest.html (or .xml for Elsevier).
 
-Run separately from the CatalMOF pipeline, e.g.:
-  python -m catalmof.text_mining_tools.downloader --doi-csv dois.csv --output-dir /path/to/html/corpus
+Run separately from the CatMOF pipeline, e.g.:
+  python -m catmof.text_mining_tools.downloader --doi-csv dois.csv --output-dir /path/to/html/corpus
 
 DOIs in the CSV must be in a column named 'doi'. Optional column 'mode' overrides
 publisher detection from DOI prefix. ACS is skipped (violation of ACS policy).
 Wiley is supported. For Elsevier DOIs the user must obtain an API key and pass it
-via --elsevier-key or CATALMOF_ELSEVIER_API_KEY.
+via --elsevier-key or CATMOF_ELSEVIER_API_KEY.
 """
 
 import argparse
@@ -68,8 +68,8 @@ def main():
     )
     parser.add_argument(
         "--elsevier-key",
-        default=os.environ.get("CATALMOF_ELSEVIER_API_KEY"),
-        help="API key for Elsevier DOIs (user must obtain separately). Optional env: CATALMOF_ELSEVIER_API_KEY.",
+        default=os.environ.get("CATMOF_ELSEVIER_API_KEY"),
+        help="API key for Elsevier DOIs (user must obtain separately). Optional env: CATMOF_ELSEVIER_API_KEY.",
     )
     parser.add_argument(
         "--timeout",

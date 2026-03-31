@@ -1,9 +1,9 @@
-.. catalmof documentation master file, created by
+.. catmof documentation master file, created by
    sphinx-quickstart on Thu Mar 15 13:55:56 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CatalMOF's documentation!
+Welcome to CatMOF's documentation!
 =========================================================
 
 .. grid:: 1 1 2 2
@@ -11,7 +11,7 @@ Welcome to CatalMOF's documentation!
     .. grid-item-card:: Getting Started
       :margin: 0 3 0 0
       
-      Learn the basics of using CatalMOF.
+      Learn the basics of using CatMOF.
 
       .. button-link:: ./getting_started.html
          :color: primary
@@ -39,7 +39,7 @@ Welcome to CatalMOF's documentation!
     .. grid-item-card:: API Reference
       :margin: 0 3 0 0
       
-      How to use the API of CatalMOF.
+      How to use the API of CatMOF.
 
       .. button-link:: ./api.html
          :color: primary
@@ -53,7 +53,7 @@ Welcome to CatalMOF's documentation!
     .. grid-item-card::  Developer Guide
       :margin: 0 3 0 0
       
-      How to contribute to CatalMOF.
+      How to contribute to CatMOF.
 
       .. button-link:: ./developer_guide.html
          :color: primary

@@ -1,6 +1,6 @@
 """
-Central path and filename definitions for the CatalMOF pipeline.
-Paths are built from a config file (when CATALMOF_CONFIG is set) or defaults,
+Central path and filename definitions for the CatMOF pipeline.
+Paths are built from a config file (when CATMOF_CONFIG is set) or defaults,
 so bypassed steps and custom layouts stay consistent.
 """
 
@@ -36,14 +36,14 @@ DEFAULT_ZEO_NETWORK = "submodules/zeo++-0.3/network"
 
 
 def _load_config_paths():
-    """Load paths section from config file pointed by CATALMOF_CONFIG."""
+    """Load paths section from config file pointed by CATMOF_CONFIG."""
     cfg = get_config()
     return cfg.get("paths", {})
 
 
 def get_config():
-    """Load full config from file pointed by CATALMOF_CONFIG. Returns {} if not set or on error."""
-    config_path = os.environ.get("CATALMOF_CONFIG")
+    """Load full config from file pointed by CATMOF_CONFIG. Returns {} if not set or on error."""
+    config_path = os.environ.get("CATMOF_CONFIG")
     if not config_path or not os.path.isfile(config_path) or yaml is None:
         return {}
     try:
@@ -57,7 +57,7 @@ def get_config():
 def get_paths():
     """
     Return a namespace of all pipeline paths.
-    Uses CATALMOF_CONFIG if set, otherwise defaults (backward compatible).
+    Uses CATMOF_CONFIG if set, otherwise defaults (backward compatible).
     """
     cfg = _load_config_paths()
     base = cfg.get("base_dir", DEFAULT_BASE_DIR)
@@ -76,7 +76,7 @@ def get_paths():
     zeo_network = cfg.get("zeo_network", DEFAULT_ZEO_NETWORK)  # User sets in config after downloading Zeo++
     manuscript_data_csv = cfg.get("manuscript_data_csv") or f"{text_mining_dir}/{FILES.manuscript_data}"
     text_mining_html_dir = cfg.get("text_mining_html_dir")  # User's HTML/XML corpus (for paper_pickler)
-    text_mining_pickle_dir = f"{text_mining_dir}/pickles"  # CatalMOF-managed; pickler and text mining write/read here
+    text_mining_pickle_dir = f"{text_mining_dir}/pickles"  # CatMOF-managed; pickler and text mining write/read here
 
     # Key file paths
     metal_filtered_cifs_csv = f"{base}/{FILES.metal_filtered_cifs}"
@@ -127,6 +127,6 @@ def get_sbu_input_csv():
     When text mining is bypassed, use stable_mofs_unique_mc instead of stable_uniq_no_catalysis.
     """
     p = get_paths()
-    if os.environ.get("CATALMOF_SBU_INPUT") == "stable_mofs_unique_mc":
+    if os.environ.get("CATMOF_SBU_INPUT") == "stable_mofs_unique_mc":
         return p.stable_mofs_unique_mc_csv
     return p.stable_uniq_no_catalysis_csv

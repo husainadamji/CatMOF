@@ -1,5 +1,5 @@
 """
-Unit and regression test for the catalmof package.
+Unit and regression test for the catmof package.
 """
 
 # Import package, test suite, and other packages as needed
@@ -7,9 +7,9 @@ import sys
 
 import pytest
 
-import catalmof
+import catmof
 
 
-def test_catalmof_imported():
+def test_catmof_imported():
     """Sample test, will always pass so long as import statement worked."""
-    assert "catalmof" in sys.modules
+    assert "catmof" in sys.modules

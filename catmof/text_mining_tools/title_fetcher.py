@@ -3,14 +3,14 @@ Standalone helper to fetch article titles from doi.org for a list of DOIs.
 
 Reads a DOI CSV (same format as the downloader: required 'doi' column). Preserves
 all other columns (e.g. 'name' for MOF refcode). Writes the same CSV with a 'title'
-column filled by scraping https://doi.org/<doi>. Output is compatible with CatalMOF
-text mining: set paths.manuscript_data_csv to the output file. CatalMOF expects
+column filled by scraping https://doi.org/<doi>. Output is compatible with CatMOF
+text mining: set paths.manuscript_data_csv to the output file. CatMOF expects
 columns: name (MOF refcode), doi, title.
 
 Run separately from the pipeline, e.g.:
-  python -m catalmof.text_mining_tools.title_fetcher --doi-csv dois.csv --output-csv manuscript_data_w_titles.csv
+  python -m catmof.text_mining_tools.title_fetcher --doi-csv dois.csv --output-csv manuscript_data_w_titles.csv
 
-Requires optional deps: pip install catalmof[text_mining_titles]
+Requires optional deps: pip install catmof[text_mining_titles]
   (selenium, beautifulsoup4, webdriver-manager)
 """
 
@@ -31,7 +31,7 @@ try:
 except ImportError as e:
     raise ImportError(
         "Title fetcher requires selenium, beautifulsoup4, and webdriver-manager. "
-        "Install with: pip install catalmof[text_mining_titles]"
+        "Install with: pip install catmof[text_mining_titles]"
     ) from e
 
 DOI_BASE_URL = "https://doi.org/"
@@ -52,7 +52,7 @@ def _get_title_for_doi(driver, doi, page_load_wait_sec=5):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Fetch article titles from doi.org for DOIs in a CSV. Output is compatible with CatalMOF manuscript_data_csv (columns: name, doi, title)."
+        description="Fetch article titles from doi.org for DOIs in a CSV. Output is compatible with CatMOF manuscript_data_csv (columns: name, doi, title)."
     )
     parser.add_argument(
         "--doi-csv",

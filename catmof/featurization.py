@@ -5,7 +5,7 @@ import pandas as pd
 import subprocess
 import numpy as np
 
-from catalmof.paths import get_paths
+from catmof.paths import get_paths
 
 def build_dir_hierarchy(base_dir, directories=['cif', 'primitive', 'xyz']):
 

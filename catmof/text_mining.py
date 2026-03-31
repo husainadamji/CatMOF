@@ -6,7 +6,7 @@ import pickle
 import numpy as np
 from data.atomic_data import catalysis_kws as default_catalysis_kws
 from text_mining_tools.article import Article
-from catalmof.paths import get_paths, get_config
+from catmof.paths import get_paths, get_config
 
 
 def scraper(unique_stable_file, all_records_file):
@@ -194,11 +194,11 @@ def main():
         raise FileNotFoundError(
             "Text mining requires a CSV with MOF names, DOIs, and titles. "
             "Set paths.manuscript_data_csv in config to your file (columns: name, doi, title). "
-            "You can create it using: python -m catalmof.text_mining_tools.title_fetcher --doi-csv <doi.csv> --output-csv <out.csv>"
+            "You can create it using: python -m catmof.text_mining_tools.title_fetcher --doi-csv <doi.csv> --output-csv <out.csv>"
         )
 
     title_only = config.get("text_mining_title_only", True)
-    pickle_dir = p.text_mining_pickle_dir  # CatalMOF-managed (text_mining_dir/pickles)
+    pickle_dir = p.text_mining_pickle_dir  # CatMOF-managed (text_mining_dir/pickles)
 
     uniq_stable_mof_manuscript_df = scraper(
         p.stable_mofs_unique_mc_csv,

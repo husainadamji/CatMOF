@@ -4,17 +4,17 @@ Build a pickle corpus from a directory of manuscript HTML/XML files.
 Expected HTML directory layout: path/prefix/rest.html (or .xml)
   e.g. path/10.1021/acscatal.2c02096.html for DOI 10.1021/acscatal.2c02096
 
-Pickle output: CatalMOF writes to text_mining_dir/pickles (paths.text_mining_pickle_dir).
+Pickle output: CatMOF writes to text_mining_dir/pickles (paths.text_mining_pickle_dir).
   e.g. .../pickles/10.1021/acscatal.2c02096.pkl
 
-Reads from config (CATALMOF_CONFIG): paths.text_mining_html_dir. Pickle dir is set by CatalMOF.
+Reads from config (CATMOF_CONFIG): paths.text_mining_html_dir. Pickle dir is set by CatMOF.
 """
 
 import os
 import pickle
 import sys
 
-from catalmof.paths import get_paths, get_config
+from catmof.paths import get_paths, get_config
 from .article import Article
 
 
