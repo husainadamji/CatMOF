@@ -1,4 +1,4 @@
-"""CatalMOF CLI implementation. Use from repo root: python cli.py run -c config.yaml (or catalmof run -c config.yaml when installed)."""
+"""CatMOF CLI implementation. Use from repo root: python cli.py run -c config.yaml (or catmof run -c config.yaml when installed)."""
 
 import os
 import sys
@@ -8,18 +8,18 @@ from pathlib import Path
 import click
 import yaml
 
-from catalmof.paths import get_paths, DEFAULT_METALS
+from catmof.paths import get_paths, DEFAULT_METALS
 
 # Pipeline steps in order (module path, description)
 PIPELINE_STEPS = [
-    ("catalmof.screen_by_metal", "Screen by metal"),
-    ("catalmof.featurization", "Featurization"),
-    ("catalmof.predict_activation_stability", "Predict activation stability"),
-    ("catalmof.predict_thermal_stability", "Predict thermal stability"),
-    ("catalmof.get_stable_mofs", "Get stable MOFs"),
-    ("catalmof.text_mining", "Text mining"),
-    ("catalmof.sbu_analysis", "SBU analysis"),
-    ("catalmof.sbu_capping", "SBU capping"),
+    ("catmof.screen_by_metal", "Screen by metal"),
+    ("catmof.featurization", "Featurization"),
+    ("catmof.predict_activation_stability", "Predict activation stability"),
+    ("catmof.predict_thermal_stability", "Predict thermal stability"),
+    ("catmof.get_stable_mofs", "Get stable MOFs"),
+    ("catmof.text_mining", "Text mining"),
+    ("catmof.sbu_analysis", "SBU analysis"),
+    ("catmof.sbu_capping", "SBU capping"),
 ]
 
 ACTIVATION_STEP_INDEX = 2   # predict_activation_stability
@@ -32,22 +32,16 @@ def welcome():
     """Print welcome banner."""
     print("\n")
     print("      ╔════════════════════════════════════════╗   ")
-    print("      ║   ____            __  __  ___  _____   ║   ")
-    print("      ║  / ___| ___ _ __ |  \\/  |/ _ \\|  ___|  ║   ")
-    print("      ║ | |  _ / _ \\ '_ \\| |\\/| | | | | |_     ║   ")
-    print("      ║ | |_| |  __/ | | | |  | | |_| |  _|    ║   ")
-    print("      ║  \\____|\\___|_| |_|_|  |_|\\___/|_|      ║   ")
-    print("      ║                                        ║   ")
-    print("      ║                 CatalMOF                 ║   ")
-    print("      ║            [catalmof.rtfd.io]            ║   ")
+    print("      ║                 CatMOF                 ║   ")
+    print("      ║            [catmof.rtfd.io]            ║   ")
     print("      ╚══════════════════╗╔════════════════════╝   ")
     print("                 ╔═══════╝╚═══════╗                 ")
     print("                 ║ THE KULIK LAB  ║                 ")
     print("                 ╚═══════╗╔═══════╝                 ")
     print("  ╔══════════════════════╝╚══════════════════════╗  ")
-    print("  ║   Code: github.com/husainadamji/catalmof       ║  ")
-    print("  ║   Docs: catalmof.readthedocs.io                ║  ")
-    print("  ║      - Workflow: catalmof run -c config.yaml   ║  ")
+    print("  ║   Code: github.com/husainadamji/catmof       ║  ")
+    print("  ║   Docs: catmof.readthedocs.io                ║  ")
+    print("  ║      - Workflow: catmof run -c config.yaml   ║  ")
     print("  ╚══════════════════════════════════════════════╝  \n")
 
 
@@ -88,7 +82,7 @@ def run_step(step_module, step_name, cwd, env):
 
 @click.group()
 def cli():
-    """CatalMOF CLI: run the pipeline from a config file."""
+    """CatMOF CLI: run the pipeline from a config file."""
     pass
 
 
@@ -106,7 +100,7 @@ def cli():
     help="Working directory (default: current directory). Scripts expect paths like data/ relative to this.",
 )
 def run(config, workdir):
-    """Run the CatalMOF pipeline sequentially from config.
+    """Run the CatMOF pipeline sequentially from config.
 
     Steps: 1 screen_by_metal, 2 featurization, 3 predict_activation_stability,
     4 predict_thermal_stability, 5 get_stable_mofs, 6 text_mining, 7 sbu_analysis, 8 sbu_capping.
@@ -136,10 +130,10 @@ def run(config, workdir):
 
     config_abs = Path(config).resolve()
     env = os.environ.copy()
-    env["CATALMOF_CONFIG"] = str(config_abs)
-    env["CATALMOF_METALS"] = ",".join(str(m) for m in metals)
+    env["CATMOF_CONFIG"] = str(config_abs)
+    env["CATMOF_METALS"] = ",".join(str(m) for m in metals)
     if bypass_text_mining:
-        env["CATALMOF_SBU_INPUT"] = "stable_mofs_unique_mc"
+        env["CATMOF_SBU_INPUT"] = "stable_mofs_unique_mc"
 
     run_confidence = config_data.get("run_confidence_checks", True)
     click.echo(
@@ -169,7 +163,7 @@ def run(config, workdir):
             if not title_only and html_dir:
                 click.echo(f"  → Paper pickler (building pickles from HTMLs for full paper analysis)")
                 result = subprocess.run(
-                    [sys.executable, "-m", "catalmof.text_mining_tools.paper_pickler"],
+                    [sys.executable, "-m", "catmof.text_mining_tools.paper_pickler"],
                     cwd=str(workdir),
                     env=env,
                 )

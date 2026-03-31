@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # Self-descriptive entries which should always be present
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 [project]
-name = "catalmof"
+name = "catmof"
 description = "We are generating DFT-ready SBU clusters for stable MOFs with catalytic potential."
 dynamic = ["version"]
 readme = "README.md"
@@ -19,7 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 requires-python = ">=3.8"
-# Run-time dependencies; aligned with devtools/conda-envs/catalmof_env.yaml (>= minimum; == for pymatgen, molSimplify, beautifulsoup4, articledownloader).
+# Run-time dependencies; aligned with devtools/conda-envs/catmof_env.yaml (>= minimum; == for pymatgen, molSimplify, beautifulsoup4, articledownloader).
 dependencies = [
     "numpy>=1.22.3",
     "pandas>=2.0.3",
@@ -43,8 +43,8 @@ dependencies = [
 
 # Update the urls once the hosting is set up.
 #[project.urls]
-#"Source" = "https://github.com/<username>/catalmof/"
-#"Documentation" = "https://catalmof.readthedocs.io/"
+#"Source" = "https://github.com/<username>/catmof/"
+#"Documentation" = "https://catmof.readthedocs.io/"
 
 [project.optional-dependencies]
 test = [
@@ -57,7 +57,7 @@ text_mining_titles = [
 
 # CLI entry points
 [project.scripts]
-catalmof = "catalmof.cli:cli"
+catmof = "catmof.cli:cli"
 
 [tool.setuptools]
 # This subkey is a beta stage development and keys may change in the future, see https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html for more details
@@ -86,7 +86,7 @@ where = ["."]
 
 # Ref https://setuptools.pypa.io/en/latest/userguide/datafiles.html#package-data
 [tool.setuptools.package-data]
-catalmof = [
+catmof = [
     "py.typed"
 ]
 
@@ -106,4 +106,4 @@ match = ["*"]
 default-tag = "1.0.0"
 
 [tool.versioningit.write]
-file = "catalmof/_version.py"
+file = "catmof/_version.py"

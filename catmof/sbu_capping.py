@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import sbu_analysis as sbu_funs
-from catalmof.paths import get_paths
+from catmof.paths import get_paths
 from molSimplify.Classes.mol3D import mol3D
 from molSimplify.Classes.atom3D import atom3D
 import molSimplify.Scripts.geometry as geom_funs

@@ -1,8 +1,8 @@
-# Conda environment for CatalMOF: install with
-#   conda env create -f devtools/conda-envs/catalmof_env.yaml
-#   conda activate catalmof
+# Conda environment for CatMOF: install with
+#   conda env create -f devtools/conda-envs/catmof_env.yaml
+#   conda activate catmof
 # Then from repo root: pip install -e .  (or pip install -e ".[text_mining_titles]" for title fetcher)
-name: catalmof
+name: catmof
 channels:
   - conda-forge
   - defaults
@@ -24,8 +24,8 @@ dependencies:
   - keras=2.4.1
 
   - beautifulsoup4=4.9.3
-  - nltk=3.9.1
-  - regex=2024.9.11
+  - nltk=3.5
+  - regex=2020.6.8
   - requests=2.32.3
 
   - selenium=4.22.0

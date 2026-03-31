@@ -10,7 +10,7 @@ from molSimplify.Classes.globalvars import globalvars
 import molSimplify.Informatics.MOF.PBC_functions as pbc_funs
 from itertools import combinations
 from data.atomic_data import metal_atom_radii
-from catalmof.paths import get_paths, get_sbu_input_csv, get_config, DEFAULT_METALS
+from catmof.paths import get_paths, get_sbu_input_csv, get_config, DEFAULT_METALS
 
 def populate_cifs(base_dir, filtered_cifs_csv_path, core_cifs_dir):
 
@@ -387,7 +387,7 @@ def filter_mof_sbus_w_halides(base_dir, rfactor_df, debug=True):
 
 def main():
     p = get_paths()
-    env_metals = os.environ.get("CATALMOF_METALS")
+    env_metals = os.environ.get("CATMOF_METALS")
     if env_metals:
         metals_of_interest = [m.strip() for m in env_metals.split(",") if m.strip()]
     else:

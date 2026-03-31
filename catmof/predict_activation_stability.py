@@ -8,34 +8,28 @@ import sklearn
 import keras
 import keras.backend as K
 import sklearn.preprocessing
+from sklearn.neighbors import BallTree
 from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import pairwise_distances
-from numpy.random import seed
-seed(1)
+from molSimplify.python_nn.clf_analysis_tool import get_entropy, get_layer_outputs
 from data.atomic_data import RACs, geo
-from catalmof.paths import get_paths
+from catmof.paths import get_paths
 
 def normalize_data(df_train, df_test, fnames, lname, debug=False):
 
     _df_train = df_train.copy().dropna(subset=fnames+lname)
     _df_test = df_test.copy().dropna(subset=fnames)
     X_train, X_test = _df_train[fnames].values, _df_test[fnames].values
-    y_train = _df_train[lname].values
 
     if debug:
         print("training data reduced from %d -> %d because of nan." % (len(df_train), len(_df_train)))
-        print("test data reduced from %d -> %d because of nan." % (len(df_test), len(_df_test)))
+        print("testing data reduced from %d -> %d because of nan." % (len(df_test), len(_df_test)))
 
     x_scaler = sklearn.preprocessing.StandardScaler()
     x_scaler.fit(X_train)
     X_train = x_scaler.transform(X_train)
     X_test = x_scaler.transform(X_test)
 
-    y_scaler = sklearn.preprocessing.StandardScaler()
-    y_scaler.fit(y_train)
-    y_train = y_scaler.transform(y_train)
-
-    return X_train, X_test, x_scaler, y_scaler
+    return X_train, X_test, x_scaler
 
 def optimize(X, y, y_name,
              regression=False, hyperopt_step=200,
@@ -121,67 +115,56 @@ def f1(y_true, y_pred):
 
     return 2 * ((p * r) / (p + r + K.epsilon()))
 
-def get_latent_distances(model, df_train, X_train, df_test, X_test):
+def dist_neighbor(fmat1, fmat2, labels, l=10, dist_ref=1):
+    tree = BallTree(fmat2, leaf_size=2, metric='cityblock')
+    dist_mat, inds = tree.query(fmat1, l)
+    dist_mat = dist_mat * 1.0 / dist_ref
+    dist_avrg = np.mean(dist_mat, axis=1)
+    labels_list = labels[inds]
+    return dist_avrg, dist_mat, labels_list
 
-    get_latent = K.function([model.layers[0].input],
-                            [model.layers[8].output])
-    training_latent = get_latent([X_train])[0]
-    test_latent = get_latent([X_test])[0]
+def get_lse(model, df_train, X_train, X_test, neighbors=10):
 
-    test_LD = pairwise_distances(test_latent, training_latent, n_jobs=30)
-    test_LD_df = pd.DataFrame(data=test_LD, index=df_test['name'].tolist(), columns=df_train['CoRE_name'].tolist())
+    train_latent = get_layer_outputs(model, 12, X_train, training_flag=False)
+    test_latent = get_layer_outputs(model, 12, X_test, training_flag=False)
 
-    return test_LD_df
+    __, nn_dists, nn_labels = dist_neighbor((train_latent.astype(float)), (train_latent.astype(float)), 
+                                            np.array([np.array(df_train["flag"].tolist())]).T, l=neighbors, dist_ref=1)
+    
+    avg = np.mean(nn_dists)
 
-def get_ten_nn(test_LD_df, base_dir, scaling_factor=26.139462100000003, debug=False):
+    __, nn_dists_core_mofs, nn_labels_core_mofs = dist_neighbor((test_latent.astype(float)), (train_latent.astype(float)), 
+                                                            np.array([np.array(df_train["flag"].tolist())]).T, l=neighbors, dist_ref=avg)
+    
+    lse = get_entropy(nn_dists_core_mofs, nn_labels_core_mofs)
 
-    ten_nn = []
-    namelist = []
-    for i, row in test_LD_df.iterrows():
-        namelist.append(i)
-        ten_closest = np.argsort(np.array(row.values))[0:10]
-        vals = np.array(row.values)[ten_closest]
-        ten_nn.append(float(np.mean(vals)))
-
-    scaled_ten_nn = (np.array(ten_nn) / scaling_factor).tolist()
-
-    ten_nn_df = pd.DataFrame()
-    ten_nn_df['CoRE_name'] = namelist
-    ten_nn_df['latent_10NN'] = ten_nn
-    ten_nn_df['scaled_latent_10NN'] = scaled_ten_nn
-    ten_nn_df = ten_nn_df.sort_values(by='CoRE_name')
-
-    if debug == True:
-        ten_nn_df.to_csv(base_dir + '/ten_nn.csv', index=False)
-
-    return ten_nn_df
+    return lse
 
 def main():
     p = get_paths()
     base_dir = p.mof_stability_dir
     os.makedirs(base_dir, exist_ok=True)
-    # When running thermal-only (activation bypassed), merged features may not be in stability dir yet
-    if not os.path.isfile(p.merged_features_in_stability_dir):
-        shutil.copy(p.merged_features_featurizable_csv, p.merged_features_in_stability_dir)
+    shutil.copy(p.merged_features_featurizable_csv, p.merged_features_in_stability_dir)
     path_to_models = p.stability_models_dir
-    df_train = pd.read_csv(path_to_models + '/thermal/thermal_train.csv')
+    df_train = pd.read_csv(path_to_models + '/solvent/solvent_train.csv')
     df_train = df_train.loc[:, (df_train != df_train.iloc[0]).any()]
     df_test = pd.read_csv(p.merged_features_in_stability_dir)
     features = [val for val in df_train.columns.values if val in RACs+geo]
 
-    X_train, X_test, _, y_scaler = normalize_data(df_train, df_test, features, ["T"], debug=False)
+    df_train = standard_labels(df_train, key="flag")
 
-    dependencies = {'precision':precision,'recall':recall,'f1':f1}
-    model = keras.models.load_model(path_to_models + '/thermal/final_model_T_few_epochs.h5',custom_objects=dependencies)
-    test_pred = y_scaler.inverse_transform(model.predict(X_test))
+    X_train, X_test, _ = normalize_data(df_train, df_test, features, ["flag"], debug=False)
 
-    test_LD_df = get_latent_distances(model, df_train, X_train, df_test, X_test)
-    ten_nn_df = get_ten_nn(test_LD_df, base_dir, debug=False)
+    dependencies = {'precision':precision, 'recall':recall,'f1':f1}
+    model = keras.models.load_model(path_to_models + '/solvent/final_model_flag_few_epochs.h5',custom_objects=dependencies)
+    test_pred = np.round(model.predict(X_test))
+
+    lse = get_lse(model, df_train, X_train, X_test)
 
     df_test['predicted'] = test_pred
-    final_test_df = pd.concat([df_test, ten_nn_df], axis=1)
-    final_test_df.drop('CoRE_name', axis=1, inplace=True)
-    final_test_df.to_csv(p.thermal_predictions_csv, index=False)
+    df_test['probability'] = model.predict(X_test)
+    df_test['lse'] = lse
+    df_test.to_csv(p.activation_predictions_csv, index=False)
     print(model.summary())
 
     return

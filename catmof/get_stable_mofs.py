@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 
-from catalmof.paths import get_paths, get_config
+from catmof.paths import get_paths, get_config
 
 def get_combined_activation_thermal_data(solvent_data_file, thermal_data_file):
 

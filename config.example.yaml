@@ -1,5 +1,5 @@
-# CatalMOF pipeline configuration
-# Use: python cli.py run -c config.yaml   or: catalmof run -c config.yaml (when installed)
+# CatMOF pipeline configuration
+# Use: python cli.py run -c config.yaml   or: catmof run -c config.yaml (when installed)
 #
 # Flow: 1) Screen by metal (user set or default)  2) Featurization (always)
 #       3) Activation stability (optional)  4) Thermal stability (optional)
@@ -8,7 +8,7 @@
 #       6) Text mining (optional)  7) SBU analysis  8) SBU capping
 
 # -----------------------------------------------------------------------------
-# Paths (optional). Relative to workdir unless overridden. CLI sets CATALMOF_CONFIG.
+# Paths (optional). Relative to workdir unless overridden. CLI sets CATMOF_CONFIG.
 # -----------------------------------------------------------------------------
 paths:
   base_dir: data
@@ -17,11 +17,11 @@ paths:
   # featurization_dir: data/featurization
   # mof_stability_dir: data/mof_stability
   # text_mining_dir: data/text_mining
-  # text_mining_html_dir: /path/to/html/corpus  # path/prefix/rest.html (e.g. path/10.1021/acscatal.2c02096.html); for paper_pickler. Pickles are written under text_mining by CatalMOF.
+  # text_mining_html_dir: /path/to/html/corpus  # path/prefix/rest.html (e.g. path/10.1021/acscatal.2c02096.html); for paper_pickler. Pickles are written under text_mining by CatMOF.
   # sbu_clusters_dir: data/sbu_clusters
   # stability_models_dir: stability_ml_models
   # zeo_network: /path/to/zeo++-0.3/network   # Path to Zeo++ binary. Required for geometric featurization. Download from https://www.zeoplusplus.org/download.html (use version 0.3).
-  # manuscript_data_csv: path to your CSV with columns name (MOF refcode), doi, title. Use catalmof.text_mining_tools.title_fetcher to get titles from a DOI list.
+  # manuscript_data_csv: path to your CSV with columns name (MOF refcode), doi, title. Use catmof.text_mining_tools.title_fetcher to get titles from a DOI list.
 
 # -----------------------------------------------------------------------------
 # 1. Metals (screen by metal). Default used if not set.
@@ -79,7 +79,7 @@ text_mining_max_catalysis_hits: 3
 # -----------------------------------------------------------------------------
 # 7. SBU analysis: R-factor check (optional)
 # -----------------------------------------------------------------------------
-# R-factor check filters SBUs by crystal quality. You must provide the R-factor CSV; CatalMOF does not ship it.
+# R-factor check filters SBUs by crystal quality. You must provide the R-factor CSV; CatMOF does not ship it.
 # Obtain R-factor data separately (e.g. via the CCDC/CSD API; CSD license required).
 # Default is False. If True, set paths.core_rfactors_csv to your CSV with columns: 'name' (MOF refcode), 'R-factor' (numeric).
 run_rfactor_check: false

@@ -124,5 +124,5 @@ ENV/
 /tests/CI_files
 
 # Zeo++ and other submodules (users install separately; see README)
-catalmof/submodules/
+catmof/submodules/
 
