@@ -1,0 +1,34 @@
+#$ -S /bin/bash
+#$ -N example_xtb
+#$ -R y
+#$ -cwd
+#$ -l h_rt=24:00:00
+#$ -l h_rss=24G
+#$ -q cpus
+#$ -l cpus=1
+#$ -pe smp 8
+# -fin *.inp
+# -fin xtb_initial_example.xyz
+# -fout scr
+
+module load intel/19.0.117
+module load xtb/6.7.0
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export OMP_THREAD_LIMIT=8
+export OMP_STACKSIZE=24GB
+
+# Perform geometry optimization
+xtb xtb_initial_example.xyz --chrg -2 --uhf 3 --gfn 2 --input xtb_example.inp --opt tight --iterations 2000 --verbose > $SGE_O_WORKDIR/xtb_initial_example_opt.out
+# Perform single point spin polarized energy correction using tblite
+xtb xtb_initial_example_opt.xyz --chrg -2 --spinpol --tblite --uhf 3 --gfn 2 --input xtb_example.inp --iterations 1000 --verbose > $SGE_O_WORKDIR/xtb_initial_example_spinpol_Ecorr.out
+# Perform single point with no tblite to obtain molden and dipole
+xtb xtb_initial_example_opt.xyz --chrg -2 --uhf 3 --gfn 2 --input xtb_example.inp --molden --iterations 1000 --verbose > $SGE_O_WORKDIR/xtb_initial_example_SP.out
+# Obtain VIP and VEA
+xtb xtb_initial_example_opt.xyz --chrg -2 --uhf 3 --gfn 2 --input xtb_example.inp --vipea --iterations 1000 --verbose > $SGE_O_WORKDIR/xtb_initial_example_vipea.out
+# Obtain global electrophilicity index
+xtb xtb_initial_example_opt.xyz --chrg -2 --uhf 3 --gfn 2 --input xtb_example.inp --vomega --iterations 1000 --verbose > $SGE_O_WORKDIR/xtb_initial_example_vomega.out
+# Obtain Fukui index
+xtb xtb_initial_example_opt.xyz --chrg -2 --uhf 3 --gfn 2 --input xtb_example.inp --vfukui --iterations 1000 --verbose > $SGE_O_WORKDIR/xtb_initial_example_vfukui.out
+
+mv * $SGE_O_WORKDIR
