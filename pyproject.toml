@@ -54,6 +54,12 @@ text_mining_titles = [
   "selenium>=4.22.0",
   "webdriver-manager>=4.0.1",
 ]  # Conda env includes these; use this extra for pip-only installs that need the title fetcher.
+sbu_quantum_ml = [
+  "torch>=2.0",
+  "e3nn>=0.5.0",
+  "hyperopt>=0.2.7",
+  "matplotlib>=3.5.0",
+]
 
 # CLI entry points
 [project.scripts]
