@@ -34,6 +34,9 @@ N_ATOM_CLASSES = 10
 # Atom padding in :func:`prepare_data` when the feature bundle omits ``max_atoms_all_sbus``.
 DEFAULT_MAX_ATOMS_PADDING = 180
 
+# Second dimension of padded atom rows when the feature bundle omits ``max_col_length``.
+DEFAULT_MAX_COL_LENGTH = 264
+
 # Columns bundled as optional global SBU-level descriptors (from xTB parsing, etc.).
 XTB_SCALAR_BLOCK = (
     "Final energy (Eh)",
@@ -67,6 +70,37 @@ def _max_atoms_from_feature_bundle(data: dict) -> int:
         return DEFAULT_MAX_ATOMS_PADDING
     n = int(v)
     return n if n > 0 else DEFAULT_MAX_ATOMS_PADDING
+
+
+def _class_feature_lengths_from_bundle(data: dict) -> Dict[int, int]:
+    """Per-tile coefficient width from assembly; fall back to :data:`DEFAULT_CLASS_FEATURE_LENGTHS`."""
+    v = data.get("class_feature_lengths")
+    if v is None or not isinstance(v, dict):
+        return dict(DEFAULT_CLASS_FEATURE_LENGTHS)
+    out = dict(DEFAULT_CLASS_FEATURE_LENGTHS)
+    for key, val in v.items():
+        ki = int(key)
+        if 0 <= ki < N_ATOM_CLASSES:
+            out[ki] = int(val)
+    return out
+
+
+def _max_col_length_from_bundle(data: dict) -> int:
+    """Global pad width from assembly when present; else :data:`DEFAULT_MAX_COL_LENGTH`."""
+    raw = data.get("max_col_length")
+    if raw is not None:
+        n = int(raw)
+        if n > 0:
+            return n
+    return DEFAULT_MAX_COL_LENGTH
+
+
+def geometry_from_feature_bundle(data: dict) -> Tuple[int, Dict[int, int], int]:
+    """``max_atoms``, per-class coefficient widths, and padded row width — from pickle metadata."""
+    max_atoms = _max_atoms_from_feature_bundle(data)
+    lengths = _class_feature_lengths_from_bundle(data)
+    max_col = _max_col_length_from_bundle(data)
+    return max_atoms, lengths, max_col
 
 
 def align_features_with_targets(
@@ -108,24 +142,27 @@ def load_or_create_splits(
      full_train, full_val, full_test,
      y_train, y_val, y_test,
      input_irreps,
-     max_atoms)
-    where ``max_atoms`` comes from the feature bundle's ``max_atoms_all_sbus`` when set,
-    else :data:`DEFAULT_MAX_ATOMS_PADDING`.
+     max_atoms,
+     class_feature_lengths,
+     max_col_length)
+    where ``max_atoms``, ``class_feature_lengths``, and ``max_col_length`` are read from the
+    feature pickle (see :func:`assemble_class_tiled_features`) when present, with fallbacks
+    in :mod:`catmof.sbu_quantum_ml.training.data`.
     """
     if splits_cache.is_file() and not force_refresh:
         with open(splits_cache, "rb") as f:
             cached = pickle.load(f)
         with open(features_pickle, "rb") as f:
             data_refresh = pickle.load(f)
-        max_atoms = _max_atoms_from_feature_bundle(data_refresh)
+        max_atoms, class_feature_lengths, max_col_length = geometry_from_feature_bundle(data_refresh)
         if len(cached) == 13:
-            return (*cached, max_atoms)
-        return (*cached[:-1], max_atoms)
+            return (*cached, max_atoms, class_feature_lengths, max_col_length)
+        return (*cached[:-1], max_atoms, class_feature_lengths, max_col_length)
 
     with open(features_pickle, "rb") as f:
         data = pickle.load(f)
 
-    max_atoms = _max_atoms_from_feature_bundle(data)
+    max_atoms, class_feature_lengths, max_col_length = geometry_from_feature_bundle(data)
     sbus = np.asarray(data["sbu"])
     input_irreps = _irreps_list_from_feature_bundle(data)
     atomic_features = data["class_based_atomic_coeffs"]
@@ -173,7 +210,7 @@ def load_or_create_splits(
     splits_cache.parent.mkdir(parents=True, exist_ok=True)
     with open(splits_cache, "wb") as f:
         pickle.dump(bundle, f)
-    return bundle
+    return (*bundle, class_feature_lengths, max_col_length)
 
 
 def normalize_atomic_features(
@@ -271,15 +308,23 @@ def prepare_data(
     targets: np.ndarray,
     full_sbu_features: Optional[np.ndarray] = None,
     max_atoms: int = DEFAULT_MAX_ATOMS_PADDING,
-    max_col_length: int = 264,
+    max_col_length: int = DEFAULT_MAX_COL_LENGTH,
     class_feature_lengths: Optional[Dict[int, int]] = None,
 ) -> Tuple[dict, torch.Tensor]:
     """Pad atoms to fixed (max_atoms, max_col_length); ghost rows use MLP index 10.
 
-    ``max_atoms`` is typically taken from the feature bundle (``max_atoms_all_sbus``) via
-    :func:`load_or_create_splits`.
+    ``max_atoms``, ``class_feature_lengths``, and ``max_col_length`` default like
+    :data:`DEFAULT_MAX_ATOMS_PADDING`, :data:`DEFAULT_CLASS_FEATURE_LENGTHS` (when
+    ``class_feature_lengths`` is omitted), and :data:`DEFAULT_MAX_COL_LENGTH`. The training
+    entrypoint passes values from :func:`geometry_from_feature_bundle` / :func:`load_or_create_splits`.
     """
-    lengths = class_feature_lengths or DEFAULT_CLASS_FEATURE_LENGTHS
+    if class_feature_lengths is None:
+        lengths = dict(DEFAULT_CLASS_FEATURE_LENGTHS)
+    else:
+        lengths = {
+            i: int(class_feature_lengths.get(i, DEFAULT_CLASS_FEATURE_LENGTHS[i]))
+            for i in range(N_ATOM_CLASSES)
+        }
     sbu_final_features: List[np.ndarray] = []
     sbu_mlp_mapping: List[np.ndarray] = []
     sbu_feature_vec_length: List[np.ndarray] = []
