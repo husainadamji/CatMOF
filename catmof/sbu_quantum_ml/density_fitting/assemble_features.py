@@ -4,7 +4,8 @@ Algorithm matches the standalone MO featurization script: per-class max irrep/co
 structures, pad shorter atoms to the longest in each class, join xTB CSV scalars. Identifiers and
 the xTB CSV join column use ``sbu`` throughout (:data:`DEFAULT_ATOM_CLASS_GROUPS`,
 ``sbu_column_xtb``). Coefficient pickles use keys ``sbu``, ``atom_list``, ``atom_irreps``,
-``coefficients``. The output pickle also stores ``max_atoms_all_sbus`` for atom padding in training.
+``coefficients``. The output pickle also stores ``max_atoms_all_sbus``, ``class_feature_lengths``,
+and ``max_col_length`` for batching in training.
 """
 
 from __future__ import annotations
@@ -76,7 +77,9 @@ def assemble_class_tiled_features(
 ) -> Path:
     """
     Build training pickle with keys ``sbu``, ``class_based_atomic_irreps``, ``class_based_atomic_coeffs``,
-    ``max_atoms_all_sbus``, and xTB scalar columns matching :mod:`catmof.sbu_quantum_ml.training.data`.
+    ``max_atoms_all_sbus``, ``class_feature_lengths`` (per-tile coefficient width, 0-based class index),
+    ``max_col_length`` (max of those widths), and xTB scalar columns matching
+    :mod:`catmof.sbu_quantum_ml.training.data`.
     """
     coeff_pickle_path = Path(coeff_pickle_path)
     xtb_csv_path = Path(xtb_csv_path)
@@ -124,6 +127,12 @@ def assemble_class_tiled_features(
 
         sbu_based_at_class_irreps.append(at_class_irreps)
         sbu_based_at_class_coeffs.append(at_class_coeffs)
+
+    class_feature_lengths = {
+        j: int(max_lengths[j]) if np.isfinite(max_lengths[j]) else 0 for j in range(n_classes)
+    }
+    finite_widths = [class_feature_lengths[j] for j in range(n_classes) if class_feature_lengths[j] > 0]
+    max_col_length = int(max(finite_widths)) if finite_widths else 0
 
     final_irreps: List[List[List[Any]]] = []
     final_coeffs: List[List[np.ndarray]] = []
@@ -188,6 +197,8 @@ def assemble_class_tiled_features(
         "class_based_atomic_irreps": final_irreps,
         "class_based_atomic_coeffs": final_coeffs,
         "max_atoms_all_sbus": int(max_atoms_all_sbus),
+        "class_feature_lengths": class_feature_lengths,
+        "max_col_length": max_col_length,
         "Final energy (Eh)": xtb_energies,
         "HOMO-LUMO gap (eV)": xtb_hl,
         "Dipole moment (Debye)": xtb_dip,

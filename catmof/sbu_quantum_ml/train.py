@@ -71,6 +71,8 @@ def run_training(
         y_test,
         input_irreps,
         max_atoms,
+        class_feature_lengths,
+        max_col_length,
     ) = bundle
 
     (
@@ -97,9 +99,27 @@ def run_training(
         full_sbu_features_test=None,
     )
 
-    train_inputs, train_y = prepare_data(norm_atomic_tr, y_tr_s, max_atoms=max_atoms)
-    val_inputs, val_y = prepare_data(norm_atomic_va, y_va_s, max_atoms=max_atoms)
-    test_inputs, _test_y_scaled = prepare_data(norm_atomic_te, y_te_s, max_atoms=max_atoms)
+    train_inputs, train_y = prepare_data(
+        norm_atomic_tr,
+        y_tr_s,
+        max_atoms=max_atoms,
+        max_col_length=max_col_length,
+        class_feature_lengths=class_feature_lengths,
+    )
+    val_inputs, val_y = prepare_data(
+        norm_atomic_va,
+        y_va_s,
+        max_atoms=max_atoms,
+        max_col_length=max_col_length,
+        class_feature_lengths=class_feature_lengths,
+    )
+    test_inputs, _test_y_scaled = prepare_data(
+        norm_atomic_te,
+        y_te_s,
+        max_atoms=max_atoms,
+        max_col_length=max_col_length,
+        class_feature_lengths=class_feature_lengths,
+    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
