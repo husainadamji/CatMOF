@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import Dict, List
 
 import torch
 import torch.nn as nn
@@ -11,7 +11,7 @@ from e3nn.o3 import Irreps, Linear
 
 
 class EquivariantMLP(nn.Module):
-    """Per-class MLP: irreps-preserving stack with gating, then scalar readout."""
+    """Per-class equivariant MLP: linear → gate → dropout per layer, then scalar readout and scatter-sum."""
 
     def __init__(
         self,
@@ -55,47 +55,53 @@ class EquivariantMLP(nn.Module):
                     irreps_gates=f"{hidden_dim * hidden_lmax}x0e",
                     act_gates=[activation],
                     irreps_gated="+".join(
-                        [f"{hidden_dim}x{l}{'e' if l % 2 == 0 else 'o'}" for l in range(1, hidden_lmax + 1)]
+                        [
+                            f"{hidden_dim}x{l}{'e' if l % 2 == 0 else 'o'}"
+                            for l in range(1, hidden_lmax + 1)
+                        ]
                     ),
                 )
             )
             inp = gate_irreps
 
         self.dropout = Dropout(gate_irreps, dropout_rate)
+        self.output_dim = output_dim
         self.output_layer = Linear(gate_irreps, Irreps(f"{output_dim}x0e"))
 
-    def forward(self, inputs: List[torch.Tensor]) -> List[torch.Tensor]:
-        """Each tensor is (n_atoms, D) for one batch element; empty list elements sum to zero."""
-        outputs: List[torch.Tensor] = []
-        for batch_inputs in inputs:
-            if batch_inputs.numel() == 0:
-                outputs.append(
-                    torch.zeros((1, self.output_layer.irreps_out.dim), device=batch_inputs.device)
-                )
-                continue
+    def forward(self, x: torch.Tensor, batch_indices: torch.Tensor, batch_size: int) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        x
+            (total_atoms, D) features for this class across the minibatch.
+        batch_indices
+            (total_atoms,) batch index per row (``long``).
+        batch_size
+            Minibatch size B; output rows are summed per batch index.
+        """
+        if x.shape[0] == 0:
+            return torch.zeros((batch_size, self.output_dim), device=x.device, dtype=x.dtype)
 
-            x = batch_inputs
-            self.dropout.to(batch_inputs.device)
-            for i in range(self.n_layers):
-                self.hidden_layers[i].to(batch_inputs.device)
-                self.activations[i].to(batch_inputs.device)
-                x = self.hidden_layers[i](x)
-                x = self.activations[i](x)
-                x = self.dropout(x)
-            self.output_layer.to(batch_inputs.device)
-            outputs.append(self.output_layer(x))
+        for i in range(self.n_layers):
+            x = self.hidden_layers[i](x)
+            x = self.activations[i](x)
+            x = self.dropout(x)
 
-        return outputs
+        x = self.output_layer(x)
+        result = torch.zeros((batch_size, x.shape[1]), device=x.device, dtype=x.dtype)
+        result.scatter_add_(0, batch_indices.unsqueeze(1).expand_as(x), x)
+        return result
 
 
 class TiledEquivariantMLP(nn.Module):
-    """One :class:`EquivariantMLP` per atom class; outputs are concatenated after per-class pooling."""
+    """One :class:`EquivariantMLP` per atom class; batched across the minibatch, then concatenated."""
 
     def __init__(
         self,
         input_irreps_list: List[Irreps],
         output_dim: int,
         n_tiles: int,
+        feature_vec_lengths: Dict[int, int],
         hidden_lmax: int = 3,
         hidden_dim: int = 64,
         n_layers: int = 2,
@@ -108,6 +114,7 @@ class TiledEquivariantMLP(nn.Module):
         if activation is None:
             activation = nn.SiLU()
 
+        self.feature_vec_lengths = dict(feature_vec_lengths)
         self.mlps = nn.ModuleList(
             [
                 EquivariantMLP(
@@ -129,34 +136,31 @@ class TiledEquivariantMLP(nn.Module):
         ----------
         inputs : dict
             ``atom_features`` — (B, n_atoms, D_pad)
-            ``mlp_mapping`` — (B, n_atoms, 1) class id per atom (10 = ghost pad)
-            ``feature_vec_length`` — (B, n_atoms, 1) true D per atom before padding
+            ``mlp_mapping`` — (B, n_atoms, 1) class id per atom (10 = ghost / padding)
         """
         atom_features = inputs["atom_features"]
         mlp_mapping = torch.squeeze(inputs["mlp_mapping"], dim=-1)
-        feature_vec_length = torch.squeeze(inputs["feature_vec_length"], dim=-1)
+        batch_size = atom_features.shape[0]
 
         outputs: List[torch.Tensor] = []
         for i, mlp in enumerate(self.mlps):
-            class_features: List[torch.Tensor] = []
-            for batch_idx in range(atom_features.shape[0]):
-                batch_mlp_mapping = mlp_mapping[batch_idx]
-                condition = batch_mlp_mapping == i
-                if not torch.any(condition):
-                    class_features.append(torch.empty(0, device=atom_features.device))
-                    continue
-                batch_feature_vec_length = feature_vec_length[batch_idx]
-                batch_atom_features = atom_features[batch_idx]
-                batch_feature_length = batch_feature_vec_length[condition][0]
-                batch_class_features = batch_atom_features[condition][:, : int(batch_feature_length.item())]
-                class_features.append(batch_class_features)
+            mask = mlp_mapping == i
+            if not mask.any():
+                outputs.append(
+                    torch.zeros((batch_size, mlp.output_dim), device=atom_features.device, dtype=atom_features.dtype)
+                )
+                continue
 
-            group_output = mlp(class_features) # List of tensors of shape: [n_atoms, output_dim] for each batch item
-            group_sum = [torch.sum(batch_tensor, dim=0) for batch_tensor in group_output] # List of tensors of shape: [output_dim] for each batch item
-            group_sum_tensor = torch.stack(group_sum, dim=0) # Tensor of shape: [n_batches, output_dim]
-            outputs.append(group_sum_tensor)
+            batch_idx = torch.arange(batch_size, device=atom_features.device, dtype=torch.long)
+            batch_idx = batch_idx.unsqueeze(1).expand_as(mask)
+            batch_indices = batch_idx[mask]
 
-        return torch.cat(outputs, dim=1) # Shape: [n_batches, n_tiles * output_dim]
+            feat_len = int(self.feature_vec_lengths[i])
+            class_features = atom_features[mask][:, :feat_len]
+            group_output = mlp(class_features, batch_indices, batch_size)
+            outputs.append(group_output)
+
+        return torch.cat(outputs, dim=1)
 
 
 class FinalEquivariantMLP(nn.Module):
@@ -188,16 +192,11 @@ class FinalEquivariantMLP(nn.Module):
         self.dropout = Dropout(hidden_irreps, dropout_rate)
         self.output_layer = Linear(hidden_irreps, Irreps("1x0e"))
 
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        x = inputs
-        self.dropout.to(inputs.device)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         for i in range(self.n_layers):
-            self.hidden_layers[i].to(inputs.device)
-            self.activations[i].to(inputs.device)
             x = self.hidden_layers[i](x)
             x = self.activations[i](x)
             x = self.dropout(x)
-        self.output_layer.to(inputs.device)
         return self.output_layer(x)
 
 
@@ -209,6 +208,7 @@ class FullEquivariantModel(nn.Module):
         input_irreps: List[Irreps],
         n_atom_groups: int,
         mlp_output_dim: int,
+        feature_vec_lengths: Dict[int, int],
         final_hidden_dim: int = 64,
         final_n_layers: int = 2,
         hidden_lmax: int = 3,
@@ -225,6 +225,7 @@ class FullEquivariantModel(nn.Module):
             input_irreps_list=input_irreps,
             output_dim=mlp_output_dim,
             n_tiles=n_atom_groups,
+            feature_vec_lengths=feature_vec_lengths,
             hidden_lmax=hidden_lmax,
             hidden_dim=hidden_dim,
             n_layers=n_layers,
@@ -241,5 +242,4 @@ class FullEquivariantModel(nn.Module):
         )
 
     def forward(self, inputs: dict) -> torch.Tensor:
-        concat_outputs = self.tiled_mlp(inputs) # Shape: [n_batches, n_tiles * output_dim]
-        return self.final_mlp(concat_outputs)
+        return self.final_mlp(self.tiled_mlp(inputs))

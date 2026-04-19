@@ -24,6 +24,7 @@ from catmof.sbu_quantum_ml.training.loop import train_and_validate
 def build_model(
     hyperparams: Dict[str, Any],
     input_irreps: List[Any],
+    class_feature_lengths: Dict[int, int],
     device: torch.device,
     n_atom_groups: int = 10,
 ) -> FullEquivariantModel:
@@ -31,6 +32,7 @@ def build_model(
         input_irreps=input_irreps,
         n_atom_groups=n_atom_groups,
         mlp_output_dim=int(hyperparams["mlp_output_dim"]),
+        feature_vec_lengths=class_feature_lengths,
         final_hidden_dim=int(hyperparams["final_hidden_dim"]),
         final_n_layers=int(hyperparams["final_n_layers"]),
         hidden_lmax=int(hyperparams["hidden_lmax"]),
@@ -46,10 +48,11 @@ def _objective_step(
     train_dataloader: DataLoader,
     val_dataloader: DataLoader,
     input_irreps: List[Any],
+    class_feature_lengths: Dict[int, int],
     device: torch.device,
     checkpoint_path: Path,
 ) -> float:
-    model = build_model(hyperparams, input_irreps, device)
+    model = build_model(hyperparams, input_irreps, class_feature_lengths, device)
     optimizer = torch.optim.Adam(model.parameters(), lr=float(hyperparams["learning_rate"]))
     _, val_losses = train_and_validate(
         model,
@@ -116,6 +119,7 @@ def optimize_model(
     val_inputs: dict,
     val_y: torch.Tensor,
     input_irreps: List[Any],
+    class_feature_lengths: Dict[int, int],
     device: torch.device,
     output_dir: Path,
     max_evals: int = 100,
@@ -129,7 +133,7 @@ def optimize_model(
 
     def create_dataloader(inputs: dict, targets: torch.Tensor, batch_size: int) -> DataLoader:
         dataset = DictDataset(inputs, targets)
-        return DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        return DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
     space = default_hyperopt_space()
 
@@ -145,7 +149,13 @@ def optimize_model(
         train_dl = create_dataloader(train_inputs, train_y, batch_size)
         val_dl = create_dataloader(val_inputs, val_y, batch_size)
         loss = _objective_step(
-            decoded, train_dl, val_dl, input_irreps, device, checkpoint_path=trial_ckpt
+            decoded,
+            train_dl,
+            val_dl,
+            input_irreps,
+            class_feature_lengths,
+            device,
+            checkpoint_path=trial_ckpt,
         )
         with open(trials_path, "wb") as f:
             pickle.dump(trials, f)
@@ -172,7 +182,7 @@ def optimize_model(
     train_dl = create_dataloader(train_inputs, train_y, best_bs)
     val_dl = create_dataloader(val_inputs, val_y, best_bs)
 
-    best_model = build_model(best_hyperparams, input_irreps, device)
+    best_model = build_model(best_hyperparams, input_irreps, class_feature_lengths, device)
     optimizer = torch.optim.Adam(
         best_model.parameters(), lr=float(best_hyperparams["learning_rate"])
     )

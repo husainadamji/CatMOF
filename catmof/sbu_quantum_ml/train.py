@@ -130,6 +130,7 @@ def run_training(
         val_inputs,
         val_y,
         input_irreps,
+        class_feature_lengths,
         device,
         output_dir=workdir,
         max_evals=max_evals,
