@@ -313,6 +313,10 @@ def prepare_data(
 ) -> Tuple[dict, torch.Tensor]:
     """Pad atoms to fixed (max_atoms, max_col_length); ghost rows use MLP index 10.
 
+    Returns an ``inputs`` dict with ``atom_features``, ``mlp_mapping``, and optionally
+    ``full_complex_features``. Per-class true widths are not stored here; pass the same
+    ``class_feature_lengths`` dict into :class:`~catmof.sbu_quantum_ml.models.bp_net.FullEquivariantModel`.
+
     ``max_atoms``, ``class_feature_lengths``, and ``max_col_length`` default like
     :data:`DEFAULT_MAX_ATOMS_PADDING`, :data:`DEFAULT_CLASS_FEATURE_LENGTHS` (when
     ``class_feature_lengths`` is omitted), and :data:`DEFAULT_MAX_COL_LENGTH`. The training
@@ -327,17 +331,14 @@ def prepare_data(
         }
     sbu_final_features: List[np.ndarray] = []
     sbu_mlp_mapping: List[np.ndarray] = []
-    sbu_feature_vec_length: List[np.ndarray] = []
 
     for features_set in atomic_features:
         sbu_tensor = np.empty((0, max_col_length))
         mlp_mapping: List[int] = []
-        feature_vec_length: List[int] = []
         for i, atom_class in enumerate(features_set):
             if atom_class.size == 0:
                 continue
             mlp_mapping.extend([i] * atom_class.shape[0])
-            feature_vec_length.extend([lengths[i]] * atom_class.shape[0])
             padded = np.pad(
                 atom_class,
                 pad_width=((0, 0), (0, max_col_length - atom_class.shape[1])),
@@ -357,13 +358,9 @@ def prepare_data(
         mlp_mapping.extend([10] * (max_atoms - sbu_tensor.shape[0]))
         sbu_mlp_mapping.append(np.array(mlp_mapping, dtype=np.int32).reshape(-1, 1))
 
-        feature_vec_length.extend([0] * (max_atoms - sbu_tensor.shape[0]))
-        sbu_feature_vec_length.append(np.array(feature_vec_length, dtype=np.int32).reshape(-1, 1))
-
     inputs: dict = {
         "atom_features": torch.tensor(np.stack(sbu_final_features), dtype=torch.float32),
         "mlp_mapping": torch.tensor(np.stack(sbu_mlp_mapping), dtype=torch.int64),
-        "feature_vec_length": torch.tensor(np.stack(sbu_feature_vec_length), dtype=torch.int64),
     }
     if full_sbu_features is None:
         inputs["full_complex_features"] = torch.zeros((len(atomic_features), 0), dtype=torch.float32)
